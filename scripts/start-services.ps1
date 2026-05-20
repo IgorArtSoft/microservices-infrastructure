@@ -14,7 +14,7 @@ function Get-ServiceRunCommand {
     $mavenWrapper = Join-Path $ServiceDir "mvnw.cmd"
 
     if (Test-Path $mavenWrapper) {
-        return ".\mvnw.cmd spring-boot:run"
+        return ".\mvnw.cmd spring-boot:run -DskipTests"
     }
 
     return "mvn spring-boot:run"
