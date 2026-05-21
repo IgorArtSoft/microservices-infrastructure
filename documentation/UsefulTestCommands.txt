@@ -1,0 +1,7 @@
+Useful test commands:
+
+1. To test if there are new documents saved into the paymentdb
+docker exec -it mongodb mongosh -u admin -p admin123 --authenticationDatabase admin
+use paymentdb
+db.payments.find().pretty()
+
