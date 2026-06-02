@@ -25,6 +25,7 @@ try {
     Write-Host "Kafka UI:     http://localhost:8085"
     Write-Host "Order API:    http://localhost:8081"
     Write-Host "Payment API:  http://localhost:8082"
+    Write-Host "Order Swagger: http://localhost:8081/swagger-ui/index.html#/order-controller/createOrder"
 }
 finally {
     # Return to the directory where you executed start-all.ps1
