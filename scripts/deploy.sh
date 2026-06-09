@@ -2,8 +2,8 @@
 
 cd ../local-dev-env
 cd scripts
-docker compose down
-docker compose up -d
+docker docker compose down --remove-orphans
+docker docker compose up -d  --build
 cd ..
 
 echo ""
