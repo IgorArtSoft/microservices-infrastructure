@@ -8,7 +8,7 @@ cd ..
 
 echo ""
 echo "              Kafka: http://localhost:9092"
-echo "          Kafka API: http://localhost:8085/ui/clusters/local-kafka/brokers"
+echo "          Kafka UI: http://localhost:8085/ui/clusters/local-kafka/brokers"
 echo "      Mongo-express: http://localhost:8084/db/orderdb/"
 echo "      User/Password: admin/admin123"
 echo "        Payment API: http://localhost:8082/actuator/health"
