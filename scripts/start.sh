@@ -2,3 +2,4 @@
 
 ./compile.sh
 ./deploy.sh
+./runservices.sh

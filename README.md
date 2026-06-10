@@ -1,10 +1,11 @@
 # Microservices Demo: Order Processing with Kafka and MongoDB
 
-Run demo:<br/>
+For run demo goto folder:<br/>
 >cd local-dev-env/scripts<br/>
 - mac/linux<br/>
 >chmod 775 *.sh<br/>
-start.sh
+start.sh<br/>
+> stop.sh
 -    windows<br/>
 > start.ps1
 
