@@ -1,10 +1,31 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$workspaceDir = "D:\Programming\webservicesjava25"
+$ScriptDir = $PSScriptRoot
+$InfrastructureRoot = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path
+$WorkspaceRoot = (Resolve-Path (Join-Path $InfrastructureRoot "..")).Path
 
-$orderServiceDir = Join-Path $workspaceDir "order-service"
-$paymentServiceDir = Join-Path $workspaceDir "payment-service"
+$Services = @(
+    @{
+        Name = "order-service"
+        Directory = Join-Path $WorkspaceRoot "order-service"
+        Port = 8081
+        Color = "Green"
+    },
+    @{
+        Name = "payment-service"
+        Directory = Join-Path $WorkspaceRoot "payment-service"
+        Port = 8082
+        Color = "Blue"
+    }
+    # Later:
+    # @{
+    #     Name = "customer-service"
+    #     Directory = Join-Path $WorkspaceRoot "customer-service"
+    #     Port = 8083
+    #     Color = "Magenta"
+    # }
+)
 
 function Get-ServiceRunCommand {
     param (
@@ -17,7 +38,7 @@ function Get-ServiceRunCommand {
         return ".\mvnw.cmd spring-boot:run -DskipTests"
     }
 
-    return "mvn spring-boot:run"
+    return "mvn spring-boot:run -DskipTests"
 }
 
 function New-ServiceTabCommand {
@@ -32,71 +53,57 @@ function New-ServiceTabCommand {
 `$Host.UI.RawUI.WindowTitle = '$ServiceName'
 `$Host.UI.RawUI.ForegroundColor = '$ConsoleColor'
 Clear-Host
-
 Write-Host 'Starting $ServiceName...' -ForegroundColor $ConsoleColor
 Write-Host 'Directory: $ServiceDir' -ForegroundColor $ConsoleColor
 Write-Host ''
-
 Set-Location -LiteralPath '$ServiceDir'
-
 $RunCommand
 "@
 }
 
 if (!(Get-Command wt.exe -ErrorAction SilentlyContinue)) {
-    throw "Windows Terminal command 'wt.exe' was not found."
+    throw "Windows Terminal command 'wt.exe' was not found. Install or enable Windows Terminal."
 }
 
 if ([string]::IsNullOrWhiteSpace($env:WT_SESSION)) {
-    throw "This PowerShell session is not running inside Windows Terminal. Open Windows Terminal, go to D:\Programming\webservicesjava25\kafka-local-dev, and run .\scripts\start-services.ps1 again."
+    throw "This script should be run from Windows Terminal. Open Windows Terminal from the infrastructure repository and run .\scripts\start-all.ps1 again."
 }
 
-if (!(Test-Path $orderServiceDir)) {
-    throw "order-service folder not found: $orderServiceDir"
+foreach ($service in $Services) {
+    if (!(Test-Path $service.Directory)) {
+        throw "$($service.Name) folder was not found: $($service.Directory)"
+    }
 }
-
-if (!(Test-Path $paymentServiceDir)) {
-    throw "payment-service folder not found: $paymentServiceDir"
-}
-
-$orderRunCommand = Get-ServiceRunCommand -ServiceDir $orderServiceDir
-$paymentRunCommand = Get-ServiceRunCommand -ServiceDir $paymentServiceDir
-
-$orderTabCommand = New-ServiceTabCommand `
-    -ServiceName "order-service" `
-    -ServiceDir $orderServiceDir `
-    -ConsoleColor "Green" `
-    -RunCommand $orderRunCommand
-
-$paymentTabCommand = New-ServiceTabCommand `
-    -ServiceName "payment-service" `
-    -ServiceDir $paymentServiceDir `
-    -ConsoleColor "Blue" `
-    -RunCommand $paymentRunCommand
 
 Write-Host "Starting microservices in new tabs of the current Windows Terminal window..." -ForegroundColor Cyan
 
-$wtArgs = @(
-    "-w", "0",
+$wtArgs = @("-w", "0")
 
-    "new-tab",
-    "--title", "order-service",
-    "--suppressApplicationTitle",
-    "powershell.exe",
-    "-NoExit",
-    "-Command",
-    $orderTabCommand,
+$first = $true
 
-    ";",
+foreach ($service in $Services) {
+    $runCommand = Get-ServiceRunCommand -ServiceDir $service.Directory
+    $tabCommand = New-ServiceTabCommand `
+        -ServiceName $service.Name `
+        -ServiceDir $service.Directory `
+        -ConsoleColor $service.Color `
+        -RunCommand $runCommand
 
-    "new-tab",
-    "--title", "payment-service",
-    "--suppressApplicationTitle",
-    "powershell.exe",
-    "-NoExit",
-    "-Command",
-    $paymentTabCommand
-)
+    if (!$first) {
+        $wtArgs += ";"
+    }
+
+    $wtArgs += @(
+        "new-tab",
+        "--title", $service.Name,
+        "--suppressApplicationTitle",
+        "powershell.exe",
+        "-NoExit",
+        "-Command", $tabCommand
+    )
+
+    $first = $false
+}
 
 & wt.exe @wtArgs
 
@@ -105,6 +112,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host ""
-Write-Host "Microservices are starting in new tabs of the current Windows Terminal window." -ForegroundColor Cyan
-Write-Host "order-service:   http://localhost:8081" -ForegroundColor Green
-Write-Host "payment-service: http://localhost:8082" -ForegroundColor Blue
+Write-Host "Microservices are starting in new Windows Terminal tabs." -ForegroundColor Green
+
+foreach ($service in $Services) {
+    Write-Host "$($service.Name): http://localhost:$($service.Port)" -ForegroundColor $service.Color
+}

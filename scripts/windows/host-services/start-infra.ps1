@@ -1,41 +1,46 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$projectDir = Split-Path -Parent $PSScriptRoot
+$ScriptDir = $PSScriptRoot
+$RepoRoot = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path
+$ComposeInfraFile = Join-Path $RepoRoot "compose\docker-compose.infra.yml"
 
 function Invoke-NativeCommand {
     param (
-        [string]$CommandDescription,
+        [string]$Description,
         [scriptblock]$Command
     )
 
-    Write-Host $CommandDescription -ForegroundColor Cyan
-
+    Write-Host $Description -ForegroundColor Cyan
     & $Command
 
     if ($LASTEXITCODE -ne 0) {
-        throw "Command failed: $CommandDescription"
+        throw "Command failed: $Description"
     }
 }
 
-Write-Host "Checking Docker availability..." -ForegroundColor Cyan
+if (!(Test-Path $ComposeInfraFile)) {
+    throw "Compose file was not found: $ComposeInfraFile"
+}
 
-docker version | Out-Host
+Write-Host "Checking Docker availability..." -ForegroundColor Cyan
+docker version *> $null
 
 if ($LASTEXITCODE -ne 0) {
     throw "Docker is not available. Start Docker Desktop first."
 }
 
-Set-Location $projectDir
+Write-Host "Using Compose file: $ComposeInfraFile" -ForegroundColor DarkGray
 
-Invoke-NativeCommand "Starting Kafka and Kafka UI..." {
-    docker compose up -d
+Invoke-NativeCommand "Starting Kafka, Kafka UI, and MongoDB..." {
+    docker compose -f $ComposeInfraFile up -d
 }
 
 Write-Host ""
-Write-Host "Kafka started successfully." -ForegroundColor Green
+Write-Host "Infrastructure started successfully." -ForegroundColor Green
 Write-Host "Kafka broker for Spring Boot: localhost:9092" -ForegroundColor Green
 Write-Host "Kafka UI: http://localhost:8085" -ForegroundColor Green
+Write-Host "MongoDB: localhost:27017" -ForegroundColor Green
 Write-Host ""
 
 docker ps

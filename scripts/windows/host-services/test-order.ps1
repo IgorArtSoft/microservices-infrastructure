@@ -1,8 +1,25 @@
-$response = Invoke-WebRequest `
-  -Uri "http://localhost:8081/orders" `
-  -Method Post `
-  -ContentType "application/json" `
-  -Body '{"orderId":"ORD-321","customerId":"CUST-123","amount":35.78}'
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
-$response.StatusCode
-$response.Content
+$OrderApiUrl = "http://localhost:8081/orders"
+
+$OrderId = "ORD-" + (Get-Date -Format "yyyyMMdd-HHmmss")
+
+$Body = @{
+    orderId = $OrderId
+    customerId = "CUST-123"
+    amount = 35.78
+    currency = "CAD"
+} | ConvertTo-Json
+
+Write-Host "Creating test order: $OrderId" -ForegroundColor Cyan
+
+$response = Invoke-WebRequest `
+    -Uri $OrderApiUrl `
+    -Method Post `
+    -ContentType "application/json" `
+    -Body $Body `
+    -UseBasicParsing
+
+Write-Host "HTTP status: $($response.StatusCode)" -ForegroundColor Green
+Write-Host $response.Content

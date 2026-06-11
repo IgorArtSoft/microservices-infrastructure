@@ -2,4 +2,4 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"$SCRIPT_DIR/unix/docker-services/stop-all.sh" "$@"
+"$SCRIPT_DIR/unix/docker-services/stop.sh" "$@"

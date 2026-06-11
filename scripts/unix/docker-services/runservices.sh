@@ -1,11 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-cd ..
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-cd ../order-service
-mkdir logs
-nohup mvn spring-boot:run > logs/order-service.log 2>&1 &
- 
-cd ../payment-service
-mkdir logs
-nohup mvn spring-boot:run > logs/payment-service.log 2>&1 &
+echo "runservices.sh is kept as a legacy compatibility alias."
+echo "Dockerized services are started by deploy.sh using Docker Compose."
+
+"$SCRIPT_DIR/deploy.sh"
