@@ -100,22 +100,34 @@ try {
 	
 	java -jar '$escapedJarPath'
 	
-	`$exitCode = `$LASTEXITCODE
-	
+	`$exitCode = if (`$null -eq `$LASTEXITCODE) { 0 } else { `$LASTEXITCODE }
+
 	Write-Host ''
 	Write-Host '$ServiceName stopped. Closing window...' -ForegroundColor Yellow
+	Write-Host "Original service exit code: `$exitCode" -ForegroundColor DarkGray
 	
-	exit `$exitCode
+	exit 0
 	"@
 	
-	Start-Process powershell.exe -ArgumentList @(
-	    "-NoProfile",
-	    "-ExecutionPolicy",
-	    "Bypass",
-	    "-Command",
-	    $runCommand
-	)
-	
+	if (Get-Command wt.exe -ErrorAction SilentlyContinue) {
+	    & wt.exe -w 0 new-tab `
+	        --title $ServiceName `
+	        --suppressApplicationTitle `
+	        powershell.exe `
+	        -NoProfile `
+	        -ExecutionPolicy Bypass `
+	        -Command $runCommand
+	}
+	else {
+	    Start-Process powershell.exe -ArgumentList @(
+	        "-NoProfile",
+	        "-ExecutionPolicy",
+	        "Bypass",
+	        "-Command",
+	        $runCommand
+	    )
+	}
+		
     Write-Host "$ServiceName redeploy command completed." -ForegroundColor Green
 }
 finally {

@@ -160,6 +160,8 @@ try {
     Stop-ProcessUsingPort -Port 8081 -ServiceName "order-service"
     Stop-ProcessUsingPort -Port 8082 -ServiceName "payment-service"
     Stop-ProcessUsingPort -Port 8083 -ServiceName "customer-service"
+	
+	Start-Sleep -Seconds 2
 
     Write-Host ""
     Write-Host "Step 2: Stopping remaining Java/Maven processes by command line..." -ForegroundColor Cyan

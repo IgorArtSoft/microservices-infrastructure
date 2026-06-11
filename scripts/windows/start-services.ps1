@@ -87,12 +87,13 @@ Set-Location -LiteralPath '$escapedServiceDir'
 
 $RunCommand
 
-`$exitCode = `$LASTEXITCODE
+`$exitCode = if (`$null -eq `$LASTEXITCODE) { 0 } else { `$LASTEXITCODE }
 
 Write-Host ''
 Write-Host '$escapedServiceName stopped. Closing tab...' -ForegroundColor Yellow
+Write-Host "Original service exit code: `$exitCode" -ForegroundColor DarkGray
 
-exit `$exitCode
+exit 0
 "@
 }
 
