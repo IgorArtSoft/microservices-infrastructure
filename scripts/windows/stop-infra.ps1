@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 
 $ScriptDir = $PSScriptRoot
 $RepoRoot = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path
-$ComposeInfraFile = Join-Path $RepoRoot "compose\docker-compose.infra.yml"
+$ComposeInfraFile = Join-Path $RepoRoot "docker-compose.infra.yml"
 
 if (!(Test-Path $ComposeInfraFile)) {
     throw "Compose file was not found: $ComposeInfraFile"

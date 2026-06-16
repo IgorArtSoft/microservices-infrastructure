@@ -9,7 +9,7 @@ function Find-InfrastructureRoot {
     $currentDirectory = Resolve-Path $StartDirectory
 
     while ($true) {
-        $candidateComposeFile = Join-Path $currentDirectory "compose\docker-compose.infra.yml"
+        $candidateComposeFile = Join-Path $currentDirectory "docker-compose.infra.yml"
 
         if (Test-Path $candidateComposeFile) {
             return $currentDirectory.Path
@@ -18,7 +18,7 @@ function Find-InfrastructureRoot {
         $parentDirectory = Split-Path -Parent $currentDirectory
 
         if ($parentDirectory -eq $currentDirectory.Path -or [string]::IsNullOrWhiteSpace($parentDirectory)) {
-            throw "Could not find infrastructure repository root. Expected compose\docker-compose.infra.yml above $StartDirectory."
+            throw "Could not find infrastructure repository root. Expected docker-compose.infra.yml above $StartDirectory."
         }
 
         $currentDirectory = Resolve-Path $parentDirectory

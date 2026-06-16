@@ -11,7 +11,7 @@ function Find-InfrastructureRoot {
     $currentDirectory = (Resolve-Path $StartDirectory).Path
 
     while ($true) {
-        $candidateComposeFile = Join-Path $currentDirectory "compose\docker-compose.infra.yml"
+        $candidateComposeFile = Join-Path $currentDirectory "docker-compose.infra.yml"
 
         if (Test-Path $candidateComposeFile) {
             return $currentDirectory
@@ -20,7 +20,7 @@ function Find-InfrastructureRoot {
         $parentDirectory = Split-Path -Parent $currentDirectory
 
         if ([string]::IsNullOrWhiteSpace($parentDirectory) -or $parentDirectory -eq $currentDirectory) {
-            throw "Could not find infrastructure root. Expected compose\docker-compose.infra.yml above: $StartDirectory"
+            throw "Could not find infrastructure root. Expected docker-compose.infra.yml above: $StartDirectory"
         }
 
         $currentDirectory = $parentDirectory
@@ -42,7 +42,7 @@ function Invoke-NativeCommand {
 }
 
 $InfrastructureRoot = Find-InfrastructureRoot -StartDirectory $ScriptDir
-$ComposeInfraFile = Join-Path $InfrastructureRoot "compose\docker-compose.infra.yml"
+$ComposeInfraFile = Join-Path $InfrastructureRoot "docker-compose.infra.yml"
 
 if (!(Test-Path $ComposeInfraFile)) {
     throw "Compose file was not found: $ComposeInfraFile"

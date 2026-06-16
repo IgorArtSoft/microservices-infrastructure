@@ -4,8 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INFRA_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
-COMPOSE_INFRA="$INFRA_ROOT/compose/docker-compose.infra.yml"
-COMPOSE_SERVICES="$INFRA_ROOT/compose/docker-compose.services.yml"
+COMPOSE_INFRA="$INFRA_ROOT/docker-compose.infra.yml"
+COMPOSE_SERVICES="$INFRA_ROOT/docker-compose.services.yml"
 
 if [[ ! -f "$COMPOSE_INFRA" ]]; then
   echo "Compose infrastructure file was not found: $COMPOSE_INFRA"
@@ -18,7 +18,7 @@ if [[ -f "$COMPOSE_SERVICES" ]]; then
   echo "Using Dockerized microservices Compose file: $COMPOSE_SERVICES"
   COMPOSE_ARGS+=(-f "$COMPOSE_SERVICES")
 else
-  echo "compose/docker-compose.services.yml was not found."
+  echo "docker-compose.services.yml was not found."
   echo "Starting infrastructure only: Kafka, Kafka UI, MongoDB."
   echo "Dockerized Spring Boot services will not start until docker-compose.services.yml is added."
 fi
