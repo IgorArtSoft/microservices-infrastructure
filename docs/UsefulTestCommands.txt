@@ -1,0 +1,20 @@
+Useful microservice test commands:
+
+1. To test if there are new documents saved into the paymentdb
+docker exec -it mongodb mongosh -u admin -p admin123 --authenticationDatabase admin
+use paymentdb
+
+To find a specific order
+db.payments.find({ orderId: "ORD-1010" }).pretty()
+
+To see all orders
+db.payments.find().pretty()
+
+To find 2 latest orders:
+db.payments.find().sort({ createdAt: -1, _id: -1 }).limit(2).pretty()
+
+2. Location for log files:
+D:\Programming\webservicesjava25\payment-service\logs\payment-service.log
+
+3. Quick rebuild and restart of the specific application.
+.\mvnw.cmd -DskipTests clean spring-boot:run
