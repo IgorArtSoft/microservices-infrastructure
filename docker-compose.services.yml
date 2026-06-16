@@ -1,81 +1,13 @@
 services:
-  kafka:
-    image: apache/kafka:4.2.0
-    container_name: kafka
-    ports:
-      - "9092:9092"
-    environment:
-      # INTERNAL/EXTERNAL BROKER PORT: Springboot, KafkaUI
-      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
-
-      # KRaft mode: one process acts as both broker and controller
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      # CONTROLLER PORT: Controller, Heartbreak, Metadata (Raft Traffic)
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-
-      # Internal broker communication
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-
-      # Required for single-node Kafka
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-
-      # Good for small local laptop setup
-      KAFKA_NUM_PARTITIONS: 1
-      KAFKA_LOG_RETENTION_HOURS: 48
-
-  kafka-ui:
-    image: kafbat/kafka-ui:main
-    container_name: kafka-ui
-    depends_on:
-      - kafka
-    ports:
-      - "8085:8080"
-    environment:
-      DYNAMIC_CONFIG_ENABLED: "true"
-      KAFKA_CLUSTERS_0_NAME: local-kafka
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-
-
-  mongodb:
-    image: mongo:7
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin123
-    volumes:
-      - mongodb_data:/data/db
-
-  mongo-express:
-    image: mongo-express:latest
-    container_name: mongo-express
-    depends_on:
-      - mongodb
-    ports:
-      - "8084:8081"
-    environment:
-      ME_CONFIG_MONGODB_SERVER: mongodb
-      ME_CONFIG_MONGODB_PORT: 27017
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: admin123
-
   order-service:
     image: eclipse-temurin:25-jre
     container_name: order-service
-    depends_on:
-      - payment-service
+	depends_on:
+	  - kafka
+	  - mongodb
     working_dir: /order-service
     volumes:
-      - ../../order-service/target:/order-service
+      - ../order-service/target:/order-service
     command: java -jar order-service-0.0.1-SNAPSHOT.jar
     ports:
       - "8081:8081"
@@ -86,17 +18,15 @@ services:
   payment-service:
     image: eclipse-temurin:25-jre
     container_name: payment-service
-    depends_on:
-      - kafka
+	depends_on:
+	  - kafka
+	  - mongodb
     working_dir: /payment-service
     volumes:
-      - ../../payment-service/target:/payment-service
+      - ../payment-service/target:/payment-service
     command: java -jar payment-service-0.0.1-SNAPSHOT.jar
     ports:
       - "8082:8082"
     environment:
       SPRING_PROFILES_ACTIVE: docker
     restart: unless-stopped
-
-volumes:
-  mongodb_data:  

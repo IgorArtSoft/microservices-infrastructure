@@ -5,7 +5,7 @@ $ServiceName = "order-service"
 $Port = 8081
 
 $ScriptDir = $PSScriptRoot
-$InfrastructureRoot = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path
+$InfrastructureRoot = (Resolve-Path (Join-Path $ScriptDir "..\..")).Path
 $WorkspaceRoot = (Resolve-Path (Join-Path $InfrastructureRoot "..")).Path
 $ProjectDir = Join-Path $WorkspaceRoot $ServiceName
 
