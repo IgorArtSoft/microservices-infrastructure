@@ -1,10 +1,10 @@
-services:
+﻿services:
   order-service:
     image: eclipse-temurin:25-jre
     container_name: order-service
-	depends_on:
-	  - kafka
-	  - mongodb
+  depends_on:
+    - kafka
+    - mongodb
     working_dir: /order-service
     volumes:
       - ../order-service/target:/order-service
@@ -18,9 +18,9 @@ services:
   payment-service:
     image: eclipse-temurin:25-jre
     container_name: payment-service
-	depends_on:
-	  - kafka
-	  - mongodb
+  depends_on:
+    - kafka
+    - mongodb
     working_dir: /payment-service
     volumes:
       - ../payment-service/target:/payment-service
@@ -30,3 +30,4 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
     restart: unless-stopped
+
