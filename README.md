@@ -1,214 +1,188 @@
-# Microservices Demo: Order Processing with Kafka and MongoDB
+# Microservices Local Development Environment
 
-For run demo goto folder:<br/>
->cd local-dev-env/scripts<br/>
-- mac/linux<br/>
->chmod 775 *.sh<br/>
-start.sh<br/>
-> stop.sh
--    windows<br/>
-> start.ps1
+Local Docker and script-based development environment for the Order Processing microservices demo.
 
-## Overview
+This repository starts the supporting infrastructure and provides helper scripts for running and testing the full local flow:
 
-This demo project presents a simple event-driven microservices architecture using **Spring Boot**, **RESTful API**, **Kafka**, **MongoDB**, and **Docker**.
+```text
+REST Client
+  -> order-service
+  -> Kafka topic: orders
+  -> payment-service
+  -> MongoDB
+```
 
-The main business flow starts when a client sends a REST request to create an order. The `order-service` receives the request, saves the order data into MongoDB, creates an `OrderEvent`, and publishes the event to a Kafka topic.
-
-The `payment-service` consumes the event from Kafka, processes the payment-related logic, and saves the payment record into MongoDB.
-
-This project demonstrates asynchronous communication between microservices using Kafka.
+The demo shows a simple event-driven microservices architecture using Spring Boot, Kafka, MongoDB, Docker, and local automation scripts.
 
 ---
 
-## High-Level Architecture
+## Purpose of the Demo
 
-The system contains four main components:
+This project demonstrates practical experience with:
 
-### 1. order-service
+* Spring Boot REST APIs.
+* Event-driven microservices.
+* Kafka producers and consumers.
+* MongoDB persistence.
+* Docker-based local infrastructure.
+* PowerShell automation.
+* End-to-end local testing.
+* Separation between infrastructure and application services.
 
-The `order-service` is responsible for accepting order requests.
+The key architectural idea is that services communicate through events instead of direct service-to-service calls. This keeps services loosely coupled and allows new consumers to be added later without changing the existing `order-service` flow.
+
+---
+
+## Quick Start
+
+### Expected workspace layout
+
+Clone the three repositories as sibling folders:
+
+```text
+microservicesjava25/
+  order-service/
+  payment-service/
+  local-dev-env/
+```
+
+Example:
+
+```powershell
+cd D:\Programming\microservicesjava25
+
+git clone https://github.com/IgorArtSoft/order-service.git
+git clone https://github.com/IgorArtSoft/payment-service.git
+git clone https://github.com/IgorArtSoft/local-dev-env.git
+
+cd local-dev-env
+```
+
+### Start everything on Windows
+
+Use this mode when you want to run Kafka and MongoDB in Docker, while running the Java microservices locally from PowerShell.
+
+```powershell
+.\scripts\windows\start-all.ps1
+```
+
+### Check status
+
+```powershell
+.\scripts\windows\status.ps1
+```
+
+### Send a test order
+
+```powershell
+.\scripts\windows\test-order.ps1
+```
+
+### Stop everything
+
+```powershell
+.\scripts\windows\stop-all.ps1
+```
+
+---
+
+## Local URLs
+
+
+| Component       | URL                   |
+| --------------- | --------------------- |
+| order-service   | http://localhost:8081 |
+| payment-service | http://localhost:8082 |
+| Kafka UI        | http://localhost:8085 |
+| MongoDB         | localhost:27017       |
+| Kafka           | localhost:9092        |
+
+Kafka UI can be used to inspect Kafka topics, brokers, messages, and consumer groups.
+
+---
+
+## What This Repository Contains
+
+This repository does not contain the Java microservice source code. It contains the local development infrastructure and automation scripts.
+
+| File or folder                  | Purpose                                                                    |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `docker-compose.infra.yml`      | Starts Kafka, Kafka UI, and MongoDB                                        |
+| `docker-compose.services.yml`   | Starts `order-service` and `payment-service` as Docker-based Java services |
+| `scripts/windows/`              | Windows PowerShell scripts for local development                           |
+| `scripts/unix/docker-services/` | Unix/Linux shell scripts for Docker-based service execution                |
+| `docs/`                         | Additional notes and useful commands                                       |
+
+---
+
+## Related Repositories
+
+The full demo uses three repositories:
+
+| Repository        | Purpose                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `order-service`   | REST API service that accepts orders, saves order data, and publishes Kafka events |
+| `payment-service` | Kafka consumer service that receives order events and creates payment records      |
+| `local-dev-env`   | Local Docker infrastructure and helper scripts                                     |
+
+Clone commands:
+
+```powershell
+git clone https://github.com/IgorArtSoft/order-service.git
+git clone https://github.com/IgorArtSoft/payment-service.git
+git clone https://github.com/IgorArtSoft/local-dev-env.git
+```
+
+---
+
+## Architecture Overview
+
+The demo contains four main runtime components.
+
+### order-service
+
+`order-service` exposes a REST API for creating and retrieving orders.
 
 Main responsibilities:
 
-- Exposes a REST API.
-- Accepts new order requests.
-- Saves order records into MongoDB.
-- Creates `OrderEvent` messages.
-- Publishes order events to Kafka.
+* Accept order requests through REST.
+* Validate and process order data.
+* Save order records into MongoDB.
+* Create `OrderEvent` messages.
+* Publish order events to Kafka.
 
-### 2. Kafka
+### Kafka
 
-Kafka acts as the event streaming platform between the services.
-
-Main responsibilities:
-
-- Stores and delivers messages between services.
-- Decouples `order-service` from `payment-service`.
-- Allows asynchronous communication between microservices.
-
-### 3. payment-service
-
-The `payment-service` is responsible for consuming order events and creating payment records.
+Kafka is used as the asynchronous messaging backbone between services.
 
 Main responsibilities:
 
-- Listens to the Kafka topic.
-- Consumes `OrderEvent` messages.
-- Processes payment-related logic.
-- Saves payment records into MongoDB.
+* Store and deliver order events.
+* Decouple `order-service` from `payment-service`.
+* Allow additional services to consume the same event in the future.
 
-### 4. MongoDB
+### payment-service
+
+`payment-service` consumes order events from Kafka.
+
+Main responsibilities:
+
+* Listen to the Kafka `orders` topic.
+* Consume `OrderEvent` messages.
+* Process payment-related logic.
+* Save payment records into MongoDB.
+
+### MongoDB
 
 MongoDB is used as the persistence layer.
 
 Databases used by the demo:
 
-- `orderdb` is used by `order-service`.
-- `paymentdb` is used by `payment-service`.
+| Database    | Used by           | Purpose                |
+| ----------- | ----------------- | ---------------------- |
+| `orderdb`   | `order-service`   | Stores order records   |
+| `paymentdb` | `payment-service` | Stores payment records |
 
----
-
-## Microservices Repositories
-
-The demo consists of three related GitHub repositories.
-
-### 1. order-service
-
-REST API service responsible for accepting order requests, saving order records into MongoDB, and publishing order events to Kafka.
-
-Repository:	<https://github.com/IgorArtSoft/order-service.git>
-
-### 2. payment-service
-
-Kafka consumer service responsible for listening to order events, processing payment-related logic, and saving payment records into MongoDB.
-
-Repository:	<https://github.com/IgorArtSoft/payment-service.git>
-
-### 3. local-dev-env
-
-Local development environment that contains Docker configuration and helper scripts for running the demo locally.
-
-Repository:	<https://github.com/IgorArtSoft/local-dev-env.git>
-
----
-
-## Technology Stack
-
-This demo uses the following technologies:
-
-- Java
-- Spring Boot
-- Spring Web
-- REST API
-- Spring Kafka
-- Apache Kafka
-- MongoDB
-- Docker
-- Maven
-- PowerShell scripts for local automation
-## Prerequisites
-
-Before running this demo locally, make sure the following software is installed on your machine.
-
-### Required Software
-
-- **Java JDK**
-
-  Required to build and run the Spring Boot microservices.
-
-  Recommended:
-
-  ```text
-  Java 21 or newer
-  ```
-
-  You can verify Java installation with:
-
-  ```powershell
-  java -version
-  ```
-
-- **Git**
-
-  Required to clone the project repositories from GitHub.
-
-  Verify installation:
-
-  ```powershell
-  git --version
-  ```
-
-- **Docker Desktop**
-
-  Required to run the local infrastructure, including Kafka and MongoDB.
-
-  Verify installation:
-
-  ```powershell
-  docker --version
-  docker ps
-  ```
-
-- **PowerShell**
-
-  Required to run the local automation scripts included in the `local-dev-env` repository.
-
-  Verify installation:
-
-  ```powershell
-  $PSVersionTable.PSVersion
-  ```
-
-- **Maven or Maven Wrapper**
-
-  The services can be built and started using Maven.
-
-  If Maven is installed globally, verify it with:
-
-  ```powershell
-  mvn -version
-  ```
-
-  If Maven is not installed globally, the included Maven Wrapper can be used instead:
-
-  ```powershell
-  .\mvnw.cmd spring-boot:run
-  ```
-
----
-
-### Optional Tools
-
-The following tools are not strictly required, but they are useful during development and testing.
-
-- **Eclipse IDE, IntelliJ IDEA, or Visual Studio Code**
-
-  Useful for editing and running the Java/Spring Boot projects.
-
-- **MongoDB Compass**
-
-  Useful for visually inspecting MongoDB databases and collections.
-
-- **Web Browser**
-
-  Useful for opening Kafka UI and reviewing Kafka topics, messages, brokers, and consumer groups.
-
----
-
-### Local Ports Used by the Demo
-
-Make sure the following ports are available before starting the local environment.
-
-| Component | Port |
-|---|---:|
-| `order-service` | `8081` |
-| `payment-service` | `8082` |
-| Kafka | `9092` |
-| Kafka UI | `8085` |
-| MongoDB | `27017` |
-
-If any of these ports are already used by another application, the corresponding service may fail to start.
 ---
 
 ## Data Flow
@@ -225,9 +199,9 @@ flowchart TD
         F --> G[Kafka Producer]
     end
 
-    G -->|Publish message| H[(Kafka Topic: orders)]
+    G -->|Publish OrderEvent| H[(Kafka Topic: orders)]
 
-    H -->|Consume message| I[Kafka Listener]
+    H -->|Consume OrderEvent| I[Kafka Listener]
 
     subgraph PAYMENT_SERVICE[payment-service]
         I --> J[PaymentService]
@@ -236,237 +210,296 @@ flowchart TD
     end
 
     L --> M[(MongoDB: paymentdb)]
-    M --> N[(Collection: payments)]
 ```
 
 ---
 
-## Business Flow Summary
+## Business Flow
 
-1. A REST client sends a `POST /orders` request to `order-service`.
-2. `order-service` receives and processes the order request.
+1. A client sends a `POST /orders` request to `order-service`.
+2. `order-service` validates and processes the request.
 3. `order-service` saves the order record into MongoDB.
 4. `order-service` creates an `OrderEvent`.
-5. `order-service` publishes the `OrderEvent` to Kafka.
+5. `order-service` publishes the event to Kafka topic `orders`.
 6. `payment-service` consumes the event from Kafka.
 7. `payment-service` processes the event.
 8. `payment-service` saves the payment record into MongoDB.
 
----
-
-## Local Development Automation
-
-The `local-dev-env` repository contains helper scripts that simplify running and testing the complete local development environment.
-
-These scripts help automate common development tasks such as:
-
-- Starting Kafka.
-- Starting MongoDB.
-- Starting both microservices.
-- Stopping the full environment.
-- Running a test request through the complete flow.
-
-This makes the demo easier to run locally and reduces the need to manually start each component.
+This demonstrates asynchronous communication between microservices. `order-service` does not call `payment-service` directly.
 
 ---
 
-## Available Automation Scripts
+## Prerequisites
 
-### Start the Complete Local Environment
+Required software:
 
-Use this script to start the full local development environment.
+| Tool                   | Purpose                            |
+| ---------------------- | ---------------------------------- |
+| Java JDK 21 or newer   | Build and run Spring Boot services |
+| Git                    | Clone repositories                 |
+| Docker Desktop         | Run Kafka, Kafka UI, and MongoDB   |
+| PowerShell             | Run Windows automation scripts     |
+| Maven or Maven Wrapper | Build Java services                |
+
+Verify installation:
 
 ```powershell
-.\start-all.ps1
+java -version
+git --version
+docker --version
+docker ps
+$PSVersionTable.PSVersion
 ```
 
-This script is intended to start the required infrastructure and services for the demo, including Kafka, MongoDB, `order-service`, and `payment-service`.
+Optional tools:
+
+| Tool                               | Purpose                                   |
+| ---------------------------------- | ----------------------------------------- |
+| Eclipse, IntelliJ IDEA, or VS Code | Edit and run Java/Spring Boot projects    |
+| MongoDB Compass                    | Inspect MongoDB databases and collections |
+| Web browser                        | Open Kafka UI and service endpoints       |
 
 ---
 
-### Stop the Complete Local Environment
+## Local Ports
 
-Use this script to stop the full local development environment.
+Make sure these ports are available before starting the demo.
 
-```powershell
-.\stop-all.ps1
-```
+| Component       |  Port |
+| --------------- | ----: |
+| order-service   |  8081 |
+| payment-service |  8082 |
+| Kafka           |  9092 |
+| Kafka UI        |  8085 |
+| MongoDB         | 27017 |
 
-This script shuts down the running services and infrastructure cleanly.
-
-It is designed to avoid unnecessary errors if some services are already stopped.
-
----
-
-### Start Microservices
-
-Use this script to start the microservices locally.
-
-```powershell
-.\scripts\start-services.ps1
-```
-
-This script starts the application services used by the demo.
-
-The services are started in separate PowerShell tabs or windows, depending on the local script configuration.
+If one of these ports is already used by another application, the corresponding service may fail to start.
 
 ---
 
-### Run a Test Request
+## Windows Scripts
 
-Use this script to send a sample test request to `order-service`.
+The main Windows scripts are located under:
 
-```powershell
-.\scripts\test-order.ps1
+```text
+scripts/windows/
 ```
 
-The test request triggers the complete event-driven flow:
+| Script                       | Purpose                                              |
+| ---------------------------- | ---------------------------------------------------- |
+| `start-all.ps1`              | Starts infrastructure and microservices              |
+| `start-infra.ps1`            | Starts Kafka, Kafka UI, and MongoDB                  |
+| `start-services.ps1`         | Starts `order-service` and `payment-service` locally |
+| `status.ps1`                 | Shows local runtime status                           |
+| `test-order.ps1`             | Sends a sample order request                         |
+| `redeploy-order-service.ps1` | Rebuilds and restarts only `order-service`           |
+| `stop-all.ps1`               | Stops microservices and infrastructure               |
+| `stop-infra.ps1`             | Stops Docker infrastructure                          |
 
-1. A sample order request is sent to `order-service`.
-2. `order-service` saves the order into MongoDB.
-3. `order-service` publishes an event to Kafka.
-4. `payment-service` consumes the Kafka event.
-5. `payment-service` saves a payment record into MongoDB.
+Recommended commands:
+
+```powershell
+.\scripts\windows\start-all.ps1
+.\scripts\windows\status.ps1
+.\scripts\windows\test-order.ps1
+.\scripts\windows\stop-all.ps1
+```
+
+---
+
+## Docker Compose Files
+
+This repository separates infrastructure and application services into two compose files.
+
+### Infrastructure
+
+```text
+docker-compose.infra.yml
+```
+
+Starts:
+
+* Kafka
+* Kafka UI
+* MongoDB
+
+Start only infrastructure:
+
+```powershell
+docker compose -f docker-compose.infra.yml up -d
+```
+
+Stop only infrastructure:
+
+```powershell
+docker compose -f docker-compose.infra.yml down
+```
+
+### Docker-based Java services
+
+```text
+docker-compose.services.yml
+```
+
+Starts:
+
+* `order-service`
+* `payment-service`
+
+This mode expects the service JAR files to already exist under the sibling service repositories.
+
+Build the JAR files first:
+
+```powershell
+cd ..\order-service
+.\mvnw.cmd clean package -DskipTests
+
+cd ..\payment-service
+.\mvnw.cmd clean package -DskipTests
+
+cd ..\local-dev-env
+```
+
+Start infrastructure and services together:
+
+```powershell
+docker compose -f docker-compose.infra.yml -f docker-compose.services.yml up -d
+```
+
+Stop infrastructure and services:
+
+```powershell
+docker compose -f docker-compose.infra.yml -f docker-compose.services.yml down
+```
 
 ---
 
 ## Example Test Request
 
-A typical test request sends a new order to `order-service`.
-
-Example:
+You can manually create an order with PowerShell:
 
 ```powershell
 Invoke-RestMethod `
   -Uri "http://localhost:8081/orders" `
   -Method Post `
   -ContentType "application/json" `
-  -Body '{"orderId":"ORD-1001","customerId":"CUST-777","amount":125.50}'
+  -Body '{"orderId":"ORD-1001","customerId":"CUST-777","amount":125.50,"currency":"CAD"}'
 ```
 
-Expected result:
+Expected high-level result:
 
 ```text
-Order message sent to Kafka.
+1. order-service receives the order.
+2. order-service saves the order into orderdb.
+3. order-service publishes an OrderEvent to Kafka.
+4. payment-service consumes the event.
+5. payment-service saves a payment record into paymentdb.
 ```
 
-After the request is processed, the order should be saved in `orderdb`, and the payment record should be created in `paymentdb`.
+You can verify the flow by checking:
+
+* Kafka UI at `http://localhost:8085`
+* MongoDB database `orderdb`
+* MongoDB database `paymentdb`
 
 ---
 
-## Local URLs
+## Useful Verification Commands
 
-When the local environment is running, the following URLs can be used.
+Check Docker containers:
 
-### order-service
-
-```text
-http://localhost:8081
+```powershell
+docker ps
 ```
 
-### payment-service
+Check Docker Compose configuration:
 
-```text
-http://localhost:8082
+```powershell
+docker compose -f docker-compose.infra.yml config
+docker compose -f docker-compose.infra.yml -f docker-compose.services.yml config
 ```
 
-### Kafka UI
+Check whether a port is used:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8081
+Get-NetTCPConnection -LocalPort 8082
+Get-NetTCPConnection -LocalPort 8085
+Get-NetTCPConnection -LocalPort 9092
+Get-NetTCPConnection -LocalPort 27017
+```
+
+Check Kafka UI:
 
 ```text
 http://localhost:8085
 ```
 
-Kafka UI can be used to inspect Kafka topics, messages, brokers, and consumer groups.
-
 ---
 
-## MongoDB Databases
+## Troubleshooting
 
-The demo uses two MongoDB databases.
+### Docker Desktop is not running
 
-### orderdb
-
-Used by `order-service`.
-
-Stores order-related records.
-
-### paymentdb
-
-Used by `payment-service`.
-
-Stores payment-related records created after consuming Kafka events.
-
----
-
-## Purpose of the Demo
-
-This project was created to demonstrate practical hands-on experience with modern microservices development.
-
-It highlights the following skills:
-
-- Building REST APIs with Spring Boot.
-- Designing simple microservices.
-- Using Kafka for asynchronous communication.
-- Creating Kafka producers and consumers.
-- Persisting data with MongoDB.
-- Running infrastructure locally with Docker.
-- Automating local development tasks with PowerShell scripts.
-- Testing an end-to-end event-driven flow.
-
----
-
-## What This Demo Shows
-
-This project demonstrates how independent services can communicate without calling each other directly.
-
-Instead of `order-service` directly invoking `payment-service`, the services communicate through Kafka events.
-
-This approach improves separation of responsibilities and makes the system easier to extend. For example, additional services could later consume the same order event without changing the existing `order-service` logic.
-
----
-
-## How to Run the Demo Locally
-
-### 1. Clone the repositories
+If infrastructure does not start, first confirm Docker Desktop is running:
 
 ```powershell
-git clone https://github.com/IgorArtSoft/order-service.git
-git clone https://github.com/IgorArtSoft/payment-service.git
-git clone https://github.com/IgorArtSoft/local-dev-env.git
+docker ps
 ```
 
-### 2. Start the local environment
+If this command fails, start Docker Desktop and try again.
 
-Go to the `local-dev-env` folder and run:
+### Port is already in use
+
+If a service cannot start, check whether the expected port is already used:
 
 ```powershell
-.\start-all.ps1
+Get-NetTCPConnection -LocalPort 8081
 ```
 
-### 3. Run a test request
+Then stop the conflicting process or change the port configuration.
 
-```powershell
-.\scripts\test-order.ps1
-```
+### Kafka UI opens but no messages appear
 
-### 4. Verify the result
+Check that:
 
-You can verify the result by checking:
+* `order-service` is running.
+* `payment-service` is running.
+* The test order request completed successfully.
+* The Kafka topic `orders` exists.
+* The consumer group for `payment-service` is active.
 
-- Kafka topic messages in Kafka UI.
-- Order records in MongoDB `orderdb`.
-- Payment records in MongoDB `paymentdb`.
+### Payment record is not created
 
-### 5. Stop the environment
+Check that:
 
-```powershell
-.\stop-all.ps1
-```
+* `payment-service` is running.
+* Kafka is running.
+* MongoDB is running.
+* The order event was published to Kafka.
+* The `payment-service` logs do not show deserialization or connection errors.
 
 ---
 
-## Summary
+## Future Repository Rename
 
-This demo shows a complete local microservices workflow using Spring Boot, Kafka, MongoDB, Docker, and PowerShell automation.
+This repository is currently named:
 
-It demonstrates how an order request can be processed asynchronously by multiple services using Kafka as the messaging backbone.
+```text
+local-dev-env
+```
+
+Planned future name:
+
+```text
+microservices-infrastructure
+```
+
+After the repository is renamed, update clone commands, documentation references, and local Git remote URLs accordingly.
+
+Example remote update:
+
+```powershell
+git remote set-url origin https://github.com/IgorArtSoft/microservices-infrastructure.git
+git remote -v
+```
